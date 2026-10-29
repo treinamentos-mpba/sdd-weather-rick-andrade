@@ -1,28 +1,52 @@
-import type { ForecastDay, Unit } from '../types/weather';
+import { formatDayLabel, getShortDate } from '../lib/format';
 import { formatTemperature } from '../lib/temperature';
-import { getWeatherIcon, getWeatherLabel } from '../lib/weatherCodes';
-import { getDayLabel, getShortDate } from '../lib/format';
+import { getWeatherDescription, getWeatherIcon } from '../lib/weatherCodes';
+import type { ForecastDay, Unit } from '../types/weather';
 
-interface ForecastCardProps {
+export interface ForecastCardProps {
   day: ForecastDay;
-  index: number;
   unit: Unit;
+  index: number;
 }
 
-/** Card de um dia da previsão. */
-export default function ForecastCard({ day, index, unit }: ForecastCardProps) {
+function formatProbability(value: number | null): string {
+  if (value === null) return 'Indisponível';
+  return `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(value)}%`;
+}
+
+export default function ForecastCard({ day, unit, index }: ForecastCardProps) {
   return (
-    <li className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-md">
-      <p className="font-semibold">{getDayLabel(day.date, index)}</p>
-      <p className="text-xs text-white/50">{getShortDate(day.date)}</p>
-      <span aria-hidden="true" className="text-3xl" title={getWeatherLabel(day.weatherCode)}>
-        {getWeatherIcon(day.weatherCode)}
-      </span>
-      <p className="text-sm">
-        <span className="font-semibold">{formatTemperature(day.max, unit)}</span>{' '}
-        <span className="text-white/50">{formatTemperature(day.min, unit)}</span>
+    <article className="min-w-0 rounded-xl border border-white/10 bg-white/5 p-4 shadow-glass backdrop-blur-md">
+      <h3 className="text-sm font-semibold capitalize text-slate-100">
+        {formatDayLabel(day.date, index)}
+      </h3>
+      <p className="mt-1 text-xs capitalize text-slate-400">{getShortDate(day.date)}</p>
+      <div className="mt-3 flex items-center gap-2">
+        <span aria-hidden="true" className="text-3xl">
+          {getWeatherIcon(day.weatherCode)}
+        </span>
+        <p className="min-w-0 text-sm text-slate-300">{getWeatherDescription(day.weatherCode)}</p>
+      </div>
+      <dl className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <div className="min-w-0 flex-1">
+          <dt className="text-xs text-slate-400">Máx.</dt>
+          <dd className="break-words text-base font-semibold leading-tight text-white sm:text-lg">
+            {formatTemperature(day.temperatureMaxC, unit)}
+          </dd>
+        </div>
+        <div className="min-w-0 flex-1">
+          <dt className="text-xs text-slate-400">Mín.</dt>
+          <dd className="break-words text-sm leading-tight text-slate-400">
+            {formatTemperature(day.temperatureMinC, unit)}
+          </dd>
+        </div>
+      </dl>
+      <p className="mt-3 text-xs text-slate-400">
+        Chuva{' '}
+        <span className="font-medium text-slate-200">
+          {formatProbability(day.precipitationProbabilityPercent)}
+        </span>
       </p>
-      <p className="text-xs text-accent-400">💧 {day.precipitationProbability}%</p>
-    </li>
+    </article>
   );
 }
